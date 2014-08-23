@@ -2560,7 +2560,7 @@ func_win32_libid ()
     ;;
   *ar\ archive*) # could be an import, or static
     if eval $OBJDUMP -f $1 | $SED -e '10q' 2>/dev/null |
-       $EGREP 'file format (pei*-i386(.*architecture: i386)?|pe-arm-wince|pe-x86-64)' >/dev/null ; then
+       $EGREP 'file format pe-i386(.*architecture: i386)?' >/dev/null ; then
       win32_nmres=`eval $NM -f posix -A $1 |
 	$SED -n -e '
 	    1,100{
@@ -3015,9 +3015,9 @@ func_to_host_path ()
             ;;
         esac
         if test -z "$func_to_host_path_result" ; then
-          #func_error "Could not determine host path corresponding to"
-          #func_error "  '$1'"
-          #func_error "Continuing, but uninstalled executables may not work."
+          func_error "Could not determine host path corresponding to"
+          func_error "  '$1'"
+          func_error "Continuing, but uninstalled executables may not work."
           # Fallback:
           func_to_host_path_result="$1"
         fi
@@ -3359,7 +3359,6 @@ static const size_t env_append_opt_len  = LTWRAPPER_OPTION_PREFIX_LENGTH + 10;
 static const char *env_append_opt       = LTWRAPPER_OPTION_PREFIX "env-append";
   /* argument is putenv-style "foo=bar", new value of foo is ${foo}bar */
 
-#undef main
 int
 main (int argc, char *argv[])
 {

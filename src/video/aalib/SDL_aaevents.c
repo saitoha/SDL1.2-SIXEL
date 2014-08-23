@@ -21,8 +21,6 @@
 */
 #include "SDL_config.h"
 
-/* Handle the event stream, converting AA events into SDL events */
-
 #include <stdio.h>
 
 #include <aalib.h>
