@@ -291,29 +291,51 @@ static int SIXEL_FlipHWSurface(_THIS, SDL_Surface *surface)
 
 static void SIXEL_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
 {
-	int start_row;
-	int cell_height = 0;
-	int i;
+	int start_row, start_col;
+	int cell_height = 0, cell_width = 0;
+	int i, y;
 	static int frames = 0;
+	unsigned char *src, *dst;
 
 	SDL_mutexP(SIXEL_mutex);
 	if ( SIXEL_cell_h != 0 && SIXEL_pixel_h != 0 ) {
 		for (i = 0; i < numrects; ++i, ++rects) {
 			if (rects->y < 0)
 				break;
-			if (rects->y + rects->h> SIXEL_h)
+			if (rects->x < 0)
+				break;
+			if (rects->y + rects->h > SIXEL_h)
+				break;
+			if (rects->x + rects->w > SIXEL_w)
 				break;
 			start_row = 1;
+			start_col = 1;
 			cell_height = SIXEL_pixel_h / SIXEL_cell_h;
+			cell_width = SIXEL_pixel_w / SIXEL_cell_w;
 			start_row += rects->y / cell_height;
+			start_col += rects->x / cell_width;
 			rects->h += rects->y - (start_row - 1) * cell_height;
+			rects->w += rects->x - (start_col - 1) * cell_width;
 			rects->y = (start_row - 1) * cell_height;
+			rects->x = (start_col - 1) * cell_width;
 			rects->h = min(((rects->y + rects->h) / cell_height + 1) * cell_height, SIXEL_h) - rects->y;
-			memcpy(SIXEL_bitmap, SIXEL_buffer + rects->y * SIXEL_w * 3, rects->h * SIXEL_w * 3);
-			printf("\033[%d;1H", start_row);
-			sixel_encode(SIXEL_bitmap, SIXEL_w, rects->h, 3, SIXEL_dither, SIXEL_output);
+			rects->w = min(((rects->x + rects->w) / cell_width + 1) * cell_width, SIXEL_w) - rects->x;
+
+			if ( rects->x == 0 && rects->w == SIXEL_w ) {
+				dst = SIXEL_bitmap;
+				src = SIXEL_buffer + rects->y * SIXEL_w * 3;
+				memcpy(dst, src, rects->h * SIXEL_w * 3);
+			} else {
+				for (y = rects->y; y < rects->y + rects->h; ++y) {
+					dst = SIXEL_bitmap + (y - rects->y) * rects->w * 3;
+					src = SIXEL_buffer + y * SIXEL_w * 3 + rects->x * 3;
+					memcpy(dst, src, rects->w * 3);
+				}
+			}
+			printf("\033[%d;%dH", start_row, start_col);
+			sixel_encode(SIXEL_bitmap, rects->w, rects->h, 3, SIXEL_dither, SIXEL_output);
 #if SIXEL_VIDEO_DEBUG
-			printf("\033[100;1Hframes: %05d, update-y: %04d, update-h: %04d", ++frames, rects->y, rects->h);
+			printf("\033[100;1Hframes: %05d, x: %04d, y: %04d, w: %04d, h: %04d", ++frames, rects->x, rects->y, rects->w, rects->h);
 #endif
 		}
 	} else {
