@@ -291,27 +291,36 @@ static int SIXEL_FlipHWSurface(_THIS, SDL_Surface *surface)
 
 static void SIXEL_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
 {
-	int start_row = 1;
+	int start_row;
 	int cell_height = 0;
+	int i;
+	static int frames = 0;
 
 	SDL_mutexP(SIXEL_mutex);
 	if ( SIXEL_cell_h != 0 && SIXEL_pixel_h != 0 ) {
-		cell_height = SIXEL_pixel_h / SIXEL_cell_h;
-		start_row += rects->y / cell_height;
-		rects->y = (start_row - 1) * cell_height;
-		rects->h += (start_row - 1) * cell_height - rects->y;
-		rects->h = min(((rects->y + rects->h) / cell_height + 1 + 1) * cell_height, SIXEL_h) - rects->y;
+		for (i = 0; i < numrects; ++i, ++rects) {
+			if (rects->y < 0)
+				break;
+			if (rects->y + rects->h> SIXEL_h)
+				break;
+			start_row = 1;
+			cell_height = SIXEL_pixel_h / SIXEL_cell_h;
+			start_row += rects->y / cell_height;
+			rects->h += rects->y - (start_row - 1) * cell_height;
+			rects->y = (start_row - 1) * cell_height;
+			rects->h = min(((rects->y + rects->h) / cell_height + 1) * cell_height, SIXEL_h) - rects->y;
+			memcpy(SIXEL_bitmap, SIXEL_buffer + rects->y * SIXEL_w * 3, rects->h * SIXEL_w * 3);
+			printf("\033[%d;1H", start_row);
+			sixel_encode(SIXEL_bitmap, SIXEL_w, rects->h, 3, SIXEL_dither, SIXEL_output);
+#if SIXEL_VIDEO_DEBUG
+			printf("\033[100;1Hframes: %05d, update-y: %04d, update-h: %04d", ++frames, rects->y, rects->h);
+#endif
+		}
 	} else {
-		rects->y = 0;
-		rects->h = SIXEL_h;
+		memcpy(SIXEL_bitmap, SIXEL_buffer, SIXEL_h * SIXEL_w * 3);
+		printf("\033[%d;1H", start_row);
+		sixel_encode(SIXEL_bitmap, SIXEL_w, SIXEL_h, 3, SIXEL_dither, SIXEL_output);
 	}
-	memcpy(SIXEL_bitmap,
-		   SIXEL_buffer + rects->y * SIXEL_w * 3,
-		   rects->h * SIXEL_w * 3);
-	printf("\033[%d;1H", start_row);
-	sixel_encode(SIXEL_bitmap,
-				 SIXEL_w, rects->h, 3, SIXEL_dither,
-				 SIXEL_output);
 	SDL_mutexV(SIXEL_mutex);
 }
 
