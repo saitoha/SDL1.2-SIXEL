@@ -49,13 +49,6 @@ static SDL_Rect **SIXEL_ListModes(_THIS, SDL_PixelFormat *format, Uint32 flags);
 static SDL_Surface *SIXEL_SetVideoMode(_THIS, SDL_Surface *current, int width, int height, int bpp, Uint32 flags);
 static void SIXEL_VideoQuit(_THIS);
 
-/* Hardware surface functions */
-static int SIXEL_AllocHWSurface(_THIS, SDL_Surface *surface);
-static int SIXEL_LockHWSurface(_THIS, SDL_Surface *surface);
-static int SIXEL_FlipHWSurface(_THIS, SDL_Surface *surface);
-static void SIXEL_UnlockHWSurface(_THIS, SDL_Surface *surface);
-static void SIXEL_FreeHWSurface(_THIS, SDL_Surface *surface);
-
 /* Various screen update functions available */
 static void SIXEL_UpdateRects(_THIS, int numrects, SDL_Rect *rects);
 
@@ -68,20 +61,19 @@ static void tty_raw(void)
 {
 	struct termios raw;
 
-	if ( tcgetattr(fileno(stdin),&orig_termios) < 0 )
+	if ( tcgetattr(fileno(stdin), &orig_termios) < 0 )
 		perror("can't set raw mode");
 	raw = orig_termios;
-	raw.c_iflag &= ~(/*BRKINT |*/ ICRNL | INPCK | ISTRIP | IXON);
-	raw.c_cflag |= (CS8);
-	raw.c_lflag &= ~(ECHO | ICANON | IEXTEN /*| ISIG*/);
+	raw.c_iflag &= ~(/*BRKINT |*/ ICRNL /*| INPCK | ISTRIP | IXON*/);
+	raw.c_lflag &= ~(ECHO | ICANON /*| IEXTEN | ISIG*/);
 	raw.c_cc[VMIN] = 0; raw.c_cc[VTIME] = 0;
-	if ( tcsetattr(fileno(stdin),TCSAFLUSH,&raw) < 0 )
+	if ( tcsetattr(fileno(stdin), TCSAFLUSH, &raw) < 0 )
 		perror("can't set raw mode");
 }
 
 int tty_restore(void)
 {
-	if ( tcsetattr(stdout,TCSAFLUSH,&orig_termios) < 0 )
+	if ( tcsetattr(fileno(stdin), TCSAFLUSH, &orig_termios) < 0 )
 		return -1;
 	return 0;
 }
@@ -131,15 +123,15 @@ static SDL_VideoDevice *SIXEL_CreateDevice(int devindex)
 	device->SetColors = NULL;
 	device->UpdateRects = NULL;
 	device->VideoQuit = SIXEL_VideoQuit;
-	device->AllocHWSurface = SIXEL_AllocHWSurface;
+	device->AllocHWSurface = NULL;
 	device->CheckHWBlit = NULL;
 	device->FillHWRect = NULL;
 	device->SetHWColorKey = NULL;
 	device->SetHWAlpha = NULL;
-	device->LockHWSurface = SIXEL_LockHWSurface;
-	device->UnlockHWSurface = SIXEL_UnlockHWSurface;
+	device->LockHWSurface = NULL;
+	device->UnlockHWSurface = NULL;
 	device->FlipHWSurface = NULL;
-	device->FreeHWSurface = SIXEL_FreeHWSurface;
+	device->FreeHWSurface = NULL;
 	device->SetCaption = NULL;
 	device->SetIcon = NULL;
 	device->IconifyWindow = NULL;
@@ -197,7 +189,9 @@ int SIXEL_VideoInit(_THIS, SDL_PixelFormat *vformat)
 
 	SIXEL_output = sixel_output_create(sixel_write, stdout);
 	SIXEL_dither = sixel_dither_get(BUILTIN_XTERM256);
-	sixel_dither_set_diffusion_type(SIXEL_dither, DIFFUSE_ATKINSON);
+#if 0
+	sixel_dither_set_diffusion_type(SIXEL_dither, DIFFUSE_FS);
+#endif
 
 	/* We're done! */
 	return(0);
@@ -259,55 +253,23 @@ SDL_Surface *SIXEL_SetVideoMode(_THIS, SDL_Surface *current,
 	return(current);
 }
 
-/* We don't actually allow hardware surfaces other than the main one */
-static int SIXEL_AllocHWSurface(_THIS, SDL_Surface *surface)
-{
-	return(-1);
-}
-static void SIXEL_FreeHWSurface(_THIS, SDL_Surface *surface)
-{
-	return;
-}
-
-/* We need to wait for vertical retrace on page flipped displays */
-static int SIXEL_LockHWSurface(_THIS, SDL_Surface *surface)
-{
-	/* TODO ? */
-	return(0);
-}
-static void SIXEL_UnlockHWSurface(_THIS, SDL_Surface *surface)
-{
-	return;
-}
-
-/* FIXME: How is this done with libsixel? */
-static int SIXEL_FlipHWSurface(_THIS, SDL_Surface *surface)
-{
-	return(0);
-}
-
 #define min(lhs, rhs) ((lhs) < (rhs) ? (lhs): (rhs))
 #define max(lhs, rhs) ((lhs) > (rhs) ? (lhs): (rhs))
 
 static void SIXEL_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
 {
-	int start_row, start_col;
+	int start_row = 1, start_col = 1;
 	int cell_height = 0, cell_width = 0;
 	int i, y;
-	static int frames = 0;
 	unsigned char *src, *dst;
+#if SIXEL_VIDEO_DEBUG
+	static int frames = 0;
+	char *format;
+#endif
 
 	SDL_mutexP(SIXEL_mutex);
 	if ( SIXEL_cell_h != 0 && SIXEL_pixel_h != 0 ) {
 		for (i = 0; i < numrects; ++i, ++rects) {
-			if (rects->y < 0)
-				break;
-			if (rects->x < 0)
-				break;
-			if (rects->y + rects->h > SIXEL_h)
-				break;
-			if (rects->x + rects->w > SIXEL_w)
-				break;
 			start_row = 1;
 			start_col = 1;
 			cell_height = SIXEL_pixel_h / SIXEL_cell_h;
@@ -335,7 +297,8 @@ static void SIXEL_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
 			printf("\033[%d;%dH", start_row, start_col);
 			sixel_encode(SIXEL_bitmap, rects->w, rects->h, 3, SIXEL_dither, SIXEL_output);
 #if SIXEL_VIDEO_DEBUG
-			printf("\033[100;1Hframes: %05d, x: %04d, y: %04d, w: %04d, h: %04d", ++frames, rects->x, rects->y, rects->w, rects->h);
+			format = "\033[100;1Hframes: %05d, x: %04d, y: %04d, w: %04d, h: %04d";
+			printf(format, ++frames, rects->x, rects->y, rects->w, rects->h);
 #endif
 		}
 	} else {
