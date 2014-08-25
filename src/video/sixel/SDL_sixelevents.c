@@ -35,18 +35,18 @@
 #include "SDL_sixelvideo.h"
 #include "SDL_sixelevents_c.h"
 
-static const int SIXEL_UP = 1 << 12 | ('A' - '@');
-static const int SIXEL_DOWN = 1 << 12 | ('B' - '@');
-static const int SIXEL_LEFT = 1 << 12 | ('C' - '@');
-static const int SIXEL_RIGHT = 1 << 12 | ('D' - '@');
-static const int SIXEL_MOUSE_SGR = 1 << 12 | ('<' - ';') << 4 << 6 | ('M' - '@');
-static const int SIXEL_MOUSE_SGR_RELEASE = 1 << 12 | ('<' - ';') << 4 << 6 | ('m' - '@');
-static const int SIXEL_MOUSE_DEC = 1 << 12 | ('&' - 0x1f) << 6 | ('w' - '@');
-static const int SIXEL_DTTERM_SEQS = 1 << 12 | ('t' - '@');
+static const int SIXEL_UP = 1 << 12 | 'A' - '@';
+static const int SIXEL_DOWN = 1 << 12 | 'B' - '@';
+static const int SIXEL_LEFT = 1 << 12 | 'C' - '@';
+static const int SIXEL_RIGHT = 1 << 12 | 'D' - '@';
+static const int SIXEL_MOUSE_SGR = 1 << 12 | ('<' - ';') << 4 << 6 | 'M' - '@';
+static const int SIXEL_MOUSE_SGR_RELEASE = 1 << 12 | ('<' - ';') << 4 << 6 | 'm' - '@';
+static const int SIXEL_MOUSE_DEC = 1 << 12 | ('&' - 0x1f) << 6 | 'w' - '@';
+static const int SIXEL_DTTERM_SEQS = 1 << 12 | 't' - '@';
 static const int SIXEL_UNKNOWN = 513;
 
 typedef struct _key {
-	int params[10];
+	int params[256];
 	int nparams;
 	int value;
 } sixel_key_t;
@@ -171,12 +171,16 @@ static int getkeys(char *buf, int nread, sixel_key_t *keys)
 				state = STATE_CSI_PARAM;
 				break;
 			case ':'...';':
-				keys[size].params[keys[size].nparams++] = pbytes;
-				pbytes = 0;
+				if (keys[size].nparams < sizeof(keys[size].params) / sizeof(*keys[size].params)) {
+					keys[size].params[keys[size].nparams++] = pbytes;
+					pbytes = 0;
+				}
 				break;
 			case '@'...'~':
-				keys[size].params[keys[size].nparams++] = pbytes;
-				keys[size++].value = 1 << 12 | ibytes << 6  | c - '@';
+				if (keys[size].nparams < sizeof(keys[size].params) / sizeof(*keys[size].params)) {
+					keys[size].params[keys[size].nparams++] = pbytes;
+					keys[size++].value = 1 << 12 | ibytes << 6  | c - '@';
+				}
 				state = STATE_GROUND;
 				break;
 			default:
@@ -310,11 +314,11 @@ void SIXEL_PumpEvents(_THIS)
 	prev_button = mouse_button;
 # if SIXEL_DEBUG
 	printf("\033[29;1Hevents: %5d [%d] (%d, %d), (%d, %d), (%d, %d), (%d, %d)\n",
-		   events++, keys[0].value,
-		   prev_x, prev_y,
-		   SIXEL_pixel_h, SIXEL_pixel_w,
-		   SIXEL_cell_h, SIXEL_cell_w,
-		   this->screen->w, this->screen->h);
+		events++, keys[0].value,
+		prev_x, prev_y,
+		SIXEL_pixel_h, SIXEL_pixel_w,
+		SIXEL_cell_h, SIXEL_cell_w,
+		this->screen->w, this->screen->h);
 #endif
 }
 
