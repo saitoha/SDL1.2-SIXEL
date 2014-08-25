@@ -1,21 +1,21 @@
 /*
     SDL - Simple DirectMedia Layer
     Copyright (C) 1997-2012 Sam Lantinga
-    
+
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
     version 2.1 of the License, or (at your option) any later version.
-    
+
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
-    
+
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-    
+
     Sam Lantinga
     slouken@libsdl.org
 */
@@ -95,23 +95,23 @@ static int getkeys(char *buf, int nread, sixel_key_t *keys)
 		switch (state) {
 		case STATE_GROUND:
 			switch (c) {
-			case 0x1b:	
+			case 0x1b:
 				state = STATE_ESC;
 				break;
-			default:	
+			default:
 				keys[size++].value = c;
 				break;
 			}
 			break;
 		case STATE_ESC:
 			switch (c) {
-			case 'O':	
-			case '[':	
+			case 'O':
+			case '[':
 				keys[size].nparams = 0;
 				pbytes = 0;
 				state = STATE_CSI;
 				break;
-			default:	
+			default:
 				keys[size++].value = 0x1b;
 				keys[size++].value = c;
 				state = STATE_GROUND;
@@ -123,32 +123,32 @@ static int getkeys(char *buf, int nread, sixel_key_t *keys)
 			case '\x1b':
 				state = STATE_ESC;
 				break;
-			case '\x00'...'\x1a':	
-			case '\x1c'...'\x1f':	
+			case '\x00'...'\x1a':
+			case '\x1c'...'\x1f':
 			case '\x7f':
 				break;
-			case ' '...'/':	
+			case ' '...'/':
 				ibytes = c - ' ';
 				pbytes = 0;
 				state = STATE_CSI_PARAM;
 				break;
-			case '0'...'9':	
+			case '0'...'9':
 				ibytes = 0;
 				pbytes = c - '0';
 				keys[size].nparams = 0;
 				state = STATE_CSI_PARAM;
 				break;
-			case '<'...'?':	
+			case '<'...'?':
 				ibytes = (c - ';') << 4;
 				keys[size].nparams = 0;
 				state = STATE_CSI_PARAM;
-		break;
+				break;
 			case '@'...'~':
 				keys[size].nparams = 0;
 				keys[size++].value = 1 << 12 | (c - '@');
 				state = STATE_GROUND;
 				break;
-			default:	
+			default:
 				state = STATE_GROUND;
 				break;
 			}
@@ -158,19 +158,19 @@ static int getkeys(char *buf, int nread, sixel_key_t *keys)
 			case '\x1b':
 				state = STATE_ESC;
 				break;
-			case '\x00'...'\x1a':	
-			case '\x1c'...'\x1f':	
+			case '\x00'...'\x1a':
+			case '\x1c'...'\x1f':
 			case '\x7f':
 				break;
-			case ' '...'/':	
+			case ' '...'/':
 				ibytes |= c - ' ';
 				state = STATE_CSI_PARAM;
 				break;
-			case '0'...'9':	
+			case '0'...'9':
 				pbytes = pbytes * 10 + c - '0';
 				state = STATE_CSI_PARAM;
 				break;
-			case ':'...';':	
+			case ':'...';':
 				keys[size].params[keys[size].nparams++] = pbytes;
 				pbytes = 0;
 				break;
@@ -179,7 +179,7 @@ static int getkeys(char *buf, int nread, sixel_key_t *keys)
 				keys[size++].value = 1 << 12 | ibytes << 6  | c - '@';
 				state = STATE_GROUND;
 				break;
-			default:	
+			default:
 				state = STATE_GROUND;
 				break;
 			}
@@ -250,7 +250,7 @@ void SIXEL_PumpEvents(_THIS)
 				case 33: /* button1 dragging */
 				case 34: /* button2 dragging */
 				case 35: /* button3 dragging */
-				default:	
+				default:
 					break;
 				}
 				break;
@@ -271,7 +271,7 @@ void SIXEL_PumpEvents(_THIS)
 				case 2:
 					posted += SDL_PrivateMouseButton(SDL_RELEASED, 3, 0, 0);
 					break;
-				default:	
+				default:
 					break;
 				}
 				break;
@@ -308,7 +308,7 @@ void SIXEL_PumpEvents(_THIS)
 		prev_x = mouse_x; prev_y = mouse_y;
 	}
 	prev_button = mouse_button;
-# if SIXEL_DEBUG 
+# if SIXEL_DEBUG
 	printf("\033[29;1Hevents: %5d [%d] (%d, %d), (%d, %d), (%d, %d), (%d, %d)\n",
 		   events++, keys[0].value,
 		   prev_x, prev_y,

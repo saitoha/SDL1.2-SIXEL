@@ -33,7 +33,7 @@
 #include <sixel.h>
 
 /* Hidden "this" pointer for the video functions */
-#define _THIS	SDL_VideoDevice *this
+#define _THIS SDL_VideoDevice *this
 
 #define SDL_NUMMODES 6
 
@@ -54,21 +54,21 @@ struct SDL_PrivateVideoData {
 
 /* Old variable names */
 #define SDL_modelist		(this->hidden->SDL_modelist)
-#define SIXEL_palette		    (this->hidden->palette)
-#define SIXEL_bitmap		    (this->hidden->bitmap)
-#define SIXEL_buffer		    (this->hidden->buffer)
+#define SIXEL_palette		(this->hidden->palette)
+#define SIXEL_bitmap		(this->hidden->bitmap)
+#define SIXEL_buffer		(this->hidden->buffer)
 
-#define SIXEL_w		    (this->hidden->w)
-#define SIXEL_h		    (this->hidden->h)
-#define SIXEL_pixel_w		    (this->hidden->pixel_w)
-#define SIXEL_pixel_h		    (this->hidden->pixel_h)
-#define SIXEL_cell_w		    (this->hidden->cell_w)
-#define SIXEL_cell_h		    (this->hidden->cell_h)
+#define SIXEL_w			(this->hidden->w)
+#define SIXEL_h			(this->hidden->h)
+#define SIXEL_pixel_w		(this->hidden->pixel_w)
+#define SIXEL_pixel_h		(this->hidden->pixel_h)
+#define SIXEL_cell_w		(this->hidden->cell_w)
+#define SIXEL_cell_h		(this->hidden->cell_h)
 
-#define SIXEL_output		    (this->hidden->output)
-#define SIXEL_dither		    (this->hidden->dither)
+#define SIXEL_output		(this->hidden->output)
+#define SIXEL_dither		(this->hidden->dither)
 
-#define SIXEL_mutex		    (this->hidden->mutex)
+#define SIXEL_mutex		(this->hidden->mutex)
 
 #endif /* _SDL_cacavideo_h */
 
