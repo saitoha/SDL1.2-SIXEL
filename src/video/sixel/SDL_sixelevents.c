@@ -39,15 +39,15 @@
 #define SIXEL_DEBUG 1
 #endif
 
-static const int SIXEL_UP = 1 << 12 | 'A' - '@';
-static const int SIXEL_DOWN = 1 << 12 | 'B' - '@';
-static const int SIXEL_LEFT = 1 << 12 | 'C' - '@';
-static const int SIXEL_RIGHT = 1 << 12 | 'D' - '@';
-static const int SIXEL_MOUSE_SGR = 1 << 12 | ('<' - ';') << 4 << 6 | 'M' - '@';
-static const int SIXEL_MOUSE_SGR_RELEASE = 1 << 12 | ('<' - ';') << 4 << 6 | 'm' - '@';
-static const int SIXEL_MOUSE_DEC = 1 << 12 | ('&' - 0x1f) << 6 | 'w' - '@';
-static const int SIXEL_DTTERM_SEQS = 1 << 12 | 't' - '@';
-static const int SIXEL_UNKNOWN = 513;
+#define SIXEL_UP		(1 << 12 | ('A' - '@'))
+#define SIXEL_DOWN		(1 << 12 | ('B' - '@'))
+#define SIXEL_RIGHT		(1 << 12 | ('C' - '@'))
+#define SIXEL_LEFT		(1 << 12 | ('D' - '@'))
+#define SIXEL_MOUSE_SGR		(1 << 12 | ('<' - ';') << 4 << 6 | ('M' - '@'))
+#define SIXEL_MOUSE_SGR_RELEASE	(1 << 12 | ('<' - ';') << 4 << 6 | ('m' - '@'))
+#define SIXEL_MOUSE_DEC		(1 << 12 | ('&' - 0x1f) << 6 | ('w' - '@'))
+#define SIXEL_DTTERM_SEQS	(1 << 12 | ('t' - '@'))
+#define SIXEL_UNKNOWN		(513)
 
 typedef struct _key {
 	int params[256];
