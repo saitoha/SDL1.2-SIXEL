@@ -50,6 +50,8 @@ struct SDL_PrivateVideoData {
 	int w, h;
 	int pixel_w, pixel_h;
 	int cell_w, cell_h;
+	int mouse_x, mouse_y;
+	int mouse_button;
 };
 
 /* Old variable names */
@@ -64,6 +66,9 @@ struct SDL_PrivateVideoData {
 #define SIXEL_pixel_h		(this->hidden->pixel_h)
 #define SIXEL_cell_w		(this->hidden->cell_w)
 #define SIXEL_cell_h		(this->hidden->cell_h)
+#define SIXEL_mouse_x		(this->hidden->mouse_x)
+#define SIXEL_mouse_y		(this->hidden->mouse_y)
+#define SIXEL_mouse_button	(this->hidden->mouse_button)
 
 #define SIXEL_output		(this->hidden->output)
 #define SIXEL_dither		(this->hidden->dither)

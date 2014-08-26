@@ -90,14 +90,25 @@ static void SIXEL_DeleteDevice(SDL_VideoDevice *device)
 	free(device->hidden);
 	free(device);
 }
+
+
+void SIXEL_UpdateMouse(_THIS)
+{
+    SDL_PrivateMouseMotion (0, 0, SIXEL_mouse_x, SIXEL_mouse_y);
+}
+
 static SDL_VideoDevice *SIXEL_CreateDevice(int devindex)
 {
 	SDL_VideoDevice *device;
 
 	tty_raw();
-	printf("\033[?25l\n");
-	printf("\033[?1003h\n");
-	printf("\033[?1006h\n");
+	printf("\033[?25l");
+	printf("\033[?1003h");
+	printf("\033[?1006h");
+#if 1
+	printf("\033[1;1'z\033[3'{\033[1'{");
+	printf("\033['|");
+#endif
 
 	/* Initialize all variables that we clean on shutdown */
 	device = (SDL_VideoDevice *)malloc(sizeof(SDL_VideoDevice));
@@ -137,6 +148,7 @@ static SDL_VideoDevice *SIXEL_CreateDevice(int devindex)
 	device->IconifyWindow = NULL;
 	device->GrabInput = NULL;
 	device->GetWMInfo = NULL;
+	device->UpdateMouse = SIXEL_UpdateMouse;
 	device->InitOSKeymap = SIXEL_InitOSKeymap;
 	device->PumpEvents = SIXEL_PumpEvents;
 
@@ -217,6 +229,8 @@ SDL_Surface *SIXEL_SetVideoMode(_THIS, SDL_Surface *current,
 		SIXEL_buffer = NULL;
 	}
 
+	SDL_PrivateAppActive(1, SDL_APPINPUTFOCUS | SDL_APPMOUSEFOCUS);
+
 	SIXEL_buffer = calloc(1, 3 * width * height);
 	if ( ! SIXEL_buffer ) {
 		SDL_SetError("Couldn't allocate buffer for requested mode");
@@ -241,6 +255,9 @@ SDL_Surface *SIXEL_SetVideoMode(_THIS, SDL_Surface *current,
 	SIXEL_pixel_h = 0;
 	SIXEL_cell_w = 0;
 	SIXEL_cell_h = 0;
+	SIXEL_mouse_x = width / 2;
+	SIXEL_mouse_y = height / 2;
+	SIXEL_mouse_button = 0;
 	current->pitch = width * 3;
 	current->pixels = SIXEL_buffer;
 
@@ -317,7 +334,11 @@ void SIXEL_VideoQuit(_THIS)
 	int i;
 
 	tty_restore();
+
+#if USE_DECMOUSE
+#else
 	printf("\033[?1006l\n");
+#endif
 	printf("\033[?1003l\n");
 	printf("\033[?25h\n");
 
