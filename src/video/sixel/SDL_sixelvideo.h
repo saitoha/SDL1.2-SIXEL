@@ -52,6 +52,7 @@ struct SDL_PrivateVideoData {
 	int cell_w, cell_h;
 	int mouse_x, mouse_y;
 	int mouse_button;
+	SDL_Rect update_rect;
 };
 
 /* Old variable names */
@@ -74,6 +75,7 @@ struct SDL_PrivateVideoData {
 #define SIXEL_dither		(this->hidden->dither)
 
 #define SIXEL_mutex		(this->hidden->mutex)
+#define SIXEL_update_rect	(this->hidden->update_rect)
 
 #endif /* _SDL_cacavideo_h */
 

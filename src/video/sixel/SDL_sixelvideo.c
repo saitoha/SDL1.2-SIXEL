@@ -52,6 +52,9 @@ static void SIXEL_VideoQuit(_THIS);
 /* Various screen update functions available */
 static void SIXEL_UpdateRects(_THIS, int numrects, SDL_Rect *rects);
 
+/* Hardware surface functions */
+static int SIXEL_FlipHWSurface(_THIS, SDL_Surface *surface);
+
 /* Cache the VideoDevice struct */
 static struct SDL_VideoDevice *local_this;
 
@@ -102,6 +105,7 @@ static SDL_VideoDevice *SIXEL_CreateDevice(int devindex)
 	SDL_VideoDevice *device;
 
 	tty_raw();
+	printf("\033c");
 	printf("\033[?25l");
 	printf("\033[?1003h");
 	printf("\033[?1006h");
@@ -141,7 +145,7 @@ static SDL_VideoDevice *SIXEL_CreateDevice(int devindex)
 	device->SetHWAlpha = NULL;
 	device->LockHWSurface = NULL;
 	device->UnlockHWSurface = NULL;
-	device->FlipHWSurface = NULL;
+	device->FlipHWSurface = SIXEL_FlipHWSurface;
 	device->FreeHWSurface = NULL;
 	device->SetCaption = NULL;
 	device->SetIcon = NULL;
@@ -258,8 +262,13 @@ SDL_Surface *SIXEL_SetVideoMode(_THIS, SDL_Surface *current,
 	SIXEL_mouse_x = width / 2;
 	SIXEL_mouse_y = height / 2;
 	SIXEL_mouse_button = 0;
+	SIXEL_update_rect.x = -1;
+	SIXEL_update_rect.y = -1;
+	SIXEL_update_rect.w = -1;
+	SIXEL_update_rect.h = -1;
 	current->pitch = width * 3;
 	current->pixels = SIXEL_buffer;
+//	current->flags |= SDL_DOUBLEBUF;
 
 	/* Set the blit function */
 	this->UpdateRects = SIXEL_UpdateRects;
@@ -273,18 +282,32 @@ SDL_Surface *SIXEL_SetVideoMode(_THIS, SDL_Surface *current,
 #define min(lhs, rhs) ((lhs) < (rhs) ? (lhs): (rhs))
 #define max(lhs, rhs) ((lhs) > (rhs) ? (lhs): (rhs))
 
+static int SIXEL_FlipHWSurface(_THIS, SDL_Surface *surface)
+{
+	int start_row = 1;
+	int start_col = 1;
+	memcpy(SIXEL_bitmap, SIXEL_buffer, SIXEL_h * SIXEL_w * 3);
+	printf("\033[%d;%dH", start_row, start_col);
+	sixel_encode(SIXEL_bitmap, SIXEL_w, SIXEL_h, 3, SIXEL_dither, SIXEL_output);
+
+	return 0;
+}
+
+
 static void SIXEL_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
 {
 	int start_row = 1, start_col = 1;
 	int cell_height = 0, cell_width = 0;
 	int i, y;
 	unsigned char *src, *dst;
+	SDL_Rect *rect;
 #if SIXEL_VIDEO_DEBUG
 	static int frames = 0;
 	char *format;
 #endif
 
 	SDL_mutexP(SIXEL_mutex);
+
 	if ( SIXEL_cell_h != 0 && SIXEL_pixel_h != 0 ) {
 		for (i = 0; i < numrects; ++i, ++rects) {
 			start_row = 1;
@@ -314,8 +337,8 @@ static void SIXEL_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
 			printf("\033[%d;%dH", start_row, start_col);
 			sixel_encode(SIXEL_bitmap, rects->w, rects->h, 3, SIXEL_dither, SIXEL_output);
 #if SIXEL_VIDEO_DEBUG
-			format = "\033[100;1Hframes: %05d, x: %04d, y: %04d, w: %04d, h: %04d";
-			printf(format, ++frames, rects->x, rects->y, rects->w, rects->h);
+				format = "\033[100;1Hframes: %05d, x: %04d, y: %04d, w: %04d, h: %04d";
+				printf(format, ++frames, rects->x, rects->y, rects->w, rects->h);
 #endif
 		}
 	} else {
