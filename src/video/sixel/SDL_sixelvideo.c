@@ -358,15 +358,17 @@ void SIXEL_VideoQuit(_THIS)
 
 	tty_restore();
 
+	printf("\033\\");
 #if USE_DECMOUSE
 #else
-	printf("\033[?1006l\n");
+	printf("\033[?1006l");
 #endif
-	printf("\033[?1003l\n");
-	printf("\033[?25h\n");
+	printf("\033[?1003l");
+	printf("\033[?25h");
 
 	sixel_dither_unref(SIXEL_dither);
 	sixel_output_unref(SIXEL_output);
+
 	/* Free video mode lists */
 	for ( i=0; i<SDL_NUMMODES; ++i ) {
 		if ( SDL_modelist[i] != NULL ) {
