@@ -59,6 +59,9 @@ static int SIXEL_FlipHWSurface(_THIS, SDL_Surface *surface);
 static void SIXEL_UnlockHWSurface(_THIS, SDL_Surface *surface);
 static void SIXEL_FreeHWSurface(_THIS, SDL_Surface *surface);
 
+/* Caption control */
+static int SIXEL_SetCaption(_THIS, const char *title, const char *icon);
+
 /* Cache the VideoDevice struct */
 static struct SDL_VideoDevice *local_this;
 
@@ -152,7 +155,7 @@ static SDL_VideoDevice *SIXEL_CreateDevice(int devindex)
 	device->UnlockHWSurface = SIXEL_UnlockHWSurface;
 	device->FlipHWSurface = SIXEL_FlipHWSurface;
 	device->FreeHWSurface = SIXEL_FreeHWSurface;
-	device->SetCaption = NULL;
+	device->SetCaption = SIXEL_SetCaption;
 	device->SetIcon = NULL;
 	device->IconifyWindow = NULL;
 	device->GrabInput = NULL;
@@ -305,6 +308,12 @@ static void SIXEL_UnlockHWSurface(_THIS, SDL_Surface *surface)
 {
 }
 
+static int SIXEL_SetCaption(_THIS, const char *title, const char *icon)
+{
+	printf("\033]1;%s\033\\", icon);
+	printf("\033]2;%s\033\\", title);
+}
+
 static int SIXEL_FlipHWSurface(_THIS, SDL_Surface *surface)
 {
 	int start_row = 1;
@@ -316,7 +325,6 @@ static int SIXEL_FlipHWSurface(_THIS, SDL_Surface *surface)
 
 	return 0;
 }
-
 
 static void SIXEL_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
 {
