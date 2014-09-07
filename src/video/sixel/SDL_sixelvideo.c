@@ -113,6 +113,7 @@ static SDL_VideoDevice *SIXEL_CreateDevice(int devindex)
 	printf("\033[?25l");
 	printf("\033[?1003h");
 	printf("\033[?1006h");
+	printf("\033[>2p");
 #if 1
 	printf("\033[1;1'z\033[3'{\033[1'{");
 	printf("\033['|");
@@ -385,6 +386,7 @@ void SIXEL_VideoQuit(_THIS)
 #else
 	printf("\033[?1006l");
 #endif
+	printf("\033[>0p");
 	printf("\033[?1003l");
 	printf("\033[?25h");
 
