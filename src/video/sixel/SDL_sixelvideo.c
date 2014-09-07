@@ -53,7 +53,11 @@ static void SIXEL_VideoQuit(_THIS);
 static void SIXEL_UpdateRects(_THIS, int numrects, SDL_Rect *rects);
 
 /* Hardware surface functions */
+static int SIXEL_AllocHWSurface(_THIS, SDL_Surface *surface);
+static int SIXEL_LockHWSurface(_THIS, SDL_Surface *surface);
 static int SIXEL_FlipHWSurface(_THIS, SDL_Surface *surface);
+static void SIXEL_UnlockHWSurface(_THIS, SDL_Surface *surface);
+static void SIXEL_FreeHWSurface(_THIS, SDL_Surface *surface);
 
 /* Cache the VideoDevice struct */
 static struct SDL_VideoDevice *local_this;
@@ -138,15 +142,15 @@ static SDL_VideoDevice *SIXEL_CreateDevice(int devindex)
 	device->SetColors = NULL;
 	device->UpdateRects = NULL;
 	device->VideoQuit = SIXEL_VideoQuit;
-	device->AllocHWSurface = NULL;
+	device->AllocHWSurface = SIXEL_AllocHWSurface;
 	device->CheckHWBlit = NULL;
 	device->FillHWRect = NULL;
 	device->SetHWColorKey = NULL;
 	device->SetHWAlpha = NULL;
-	device->LockHWSurface = NULL;
-	device->UnlockHWSurface = NULL;
+	device->LockHWSurface = SIXEL_LockHWSurface;
+	device->UnlockHWSurface = SIXEL_UnlockHWSurface;
 	device->FlipHWSurface = SIXEL_FlipHWSurface;
-	device->FreeHWSurface = NULL;
+	device->FreeHWSurface = SIXEL_FreeHWSurface;
 	device->SetCaption = NULL;
 	device->SetIcon = NULL;
 	device->IconifyWindow = NULL;
@@ -282,10 +286,29 @@ SDL_Surface *SIXEL_SetVideoMode(_THIS, SDL_Surface *current,
 #define min(lhs, rhs) ((lhs) < (rhs) ? (lhs): (rhs))
 #define max(lhs, rhs) ((lhs) > (rhs) ? (lhs): (rhs))
 
+static int SIXEL_AllocHWSurface(_THIS, SDL_Surface *surface)
+{
+	return 0;
+}
+
+static void SIXEL_FreeHWSurface(_THIS, SDL_Surface *surface)
+{
+}
+
+static int SIXEL_LockHWSurface(_THIS, SDL_Surface *surface)
+{
+	return 0;
+}
+
+static void SIXEL_UnlockHWSurface(_THIS, SDL_Surface *surface)
+{
+}
+
 static int SIXEL_FlipHWSurface(_THIS, SDL_Surface *surface)
 {
 	int start_row = 1;
 	int start_col = 1;
+
 	memcpy(SIXEL_bitmap, SIXEL_buffer, SIXEL_h * SIXEL_w * 3);
 	printf("\033[%d;%dH", start_row, start_col);
 	sixel_encode(SIXEL_bitmap, SIXEL_w, SIXEL_h, 3, SIXEL_dither, SIXEL_output);
@@ -300,7 +323,6 @@ static void SIXEL_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
 	int cell_height = 0, cell_width = 0;
 	int i, y;
 	unsigned char *src, *dst;
-	SDL_Rect *rect;
 #if SIXEL_VIDEO_DEBUG
 	static int frames = 0;
 	char *format;
