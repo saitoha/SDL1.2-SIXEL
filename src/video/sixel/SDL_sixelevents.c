@@ -494,6 +494,34 @@ void SIXEL_InitOSKeymap(_THIS)
 
 }
 
+static int TranslateScancode(int code)
+{
+	static u_char tbl[] = {
+		0, 0, 0, 0, 0, 0, 0, 0, 14, 15, 28, 0, 0, 28, 0, 0,	/* 0x0 - 0xf */
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,		/* 0x10 - 0x1f */
+		57, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 13, 51, 12, 52, 53, 	/* 0x20 - 0x2f */
+		11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 39, 39, 51, 13, 52, 53,	/* 0x30 - 0x3f */
+		0, 30, 48, 46, 32, 18, 33, 34, 35, 23, 36, 37, 38, 50, 49, 24, /* 0x40 - 0x4f */
+		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 26, 43, 27, 0, 12, /* 0x50 - 0x5f */
+		0, 30, 48, 46, 32, 18, 33, 34, 35, 23, 36, 37, 38, 50, 49, 24, /* 0x60 - 0x6f */
+		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 26, 43, 27, 0, 0, /* 0x70 - 0x7f */
+	};
+
+	if (code == 369 /* SDLK_LSHIFT */) {
+		return 42+8;
+	}
+	else if (code == 370 /* SDLK_RSHIFT */) {
+		return 54+8;
+	}
+	else if( code <= 0x7f)
+	{
+		return tbl[code]+8;
+	}
+	else {
+		return code;
+	}
+}
+
 static SDL_keysym *TranslateKey(int scancode, SDL_keysym *keysym)
 {
 	/* Sanity check */
@@ -501,7 +529,7 @@ static SDL_keysym *TranslateKey(int scancode, SDL_keysym *keysym)
 		scancode = SIXEL_UNKNOWN;
 
 	/* Set the keysym information */
-	keysym->scancode = scancode;
+	keysym->scancode = TranslateScancode(scancode);
 	keysym->sym = keymap[scancode];
 	keysym->mod = KMOD_NONE;
 
@@ -509,7 +537,9 @@ static SDL_keysym *TranslateKey(int scancode, SDL_keysym *keysym)
 	keysym->unicode = 0;
 	if ( SDL_TranslateUNICODE ) {
 		/* Populate the unicode field with the ASCII value */
-		keysym->unicode = scancode;
+		if (scancode <= 0x7f) {
+			keysym->unicode = scancode;
+		}
 	}
 	return(keysym);
 }
