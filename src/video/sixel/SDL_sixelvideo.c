@@ -377,6 +377,7 @@ static void SIXEL_UpdateRects(_THIS, int numrects, SDL_Rect *rects)
 		printf("\033[%d;1H", start_row);
 		sixel_encode(SIXEL_bitmap, SIXEL_w, SIXEL_h, 3, SIXEL_dither, SIXEL_output);
 	}
+	fflush(stdout);
 	SDL_mutexV(SIXEL_mutex);
 }
 
