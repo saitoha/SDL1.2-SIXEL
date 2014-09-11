@@ -43,6 +43,8 @@
 #include <sixel.h>
 #include <termios.h>
 
+#define SIXEL_VIDEO_DEBUG 0
+
 /* Initialization/Query functions */
 static int SIXEL_VideoInit(_THIS, SDL_PixelFormat *vformat);
 static SDL_Rect **SIXEL_ListModes(_THIS, SDL_PixelFormat *format, Uint32 flags);
