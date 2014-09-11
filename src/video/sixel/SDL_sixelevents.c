@@ -353,6 +353,7 @@ void SIXEL_PumpEvents(_THIS)
 					SIXEL_mouse_button = key->params[1];
 				}
 				printf("\033['|");
+				fflush(stdout);
 				break;
 			case SIXEL_FKEYS:
 				keysym.scancode = key->value;
