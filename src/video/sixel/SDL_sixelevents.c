@@ -203,7 +203,6 @@ void SIXEL_PumpEvents(_THIS)
 	static int prev_x = -1, prev_y = -1;
 #if SIXEL_DEBUG
 	static int events = 0;
-	static int keyval = 0;
 #endif
 	char buf[4096];
 	static sixel_key_t keys[4096];
@@ -392,15 +391,7 @@ void SIXEL_PumpEvents(_THIS)
 				posted += SDL_PrivateKeyboard(SDL_RELEASED, &keysym);
 				break;
 			default:
-#if SIXEL_DEBUG
-                keyval = key->value;
-#endif
-                if (key->value == 1) {
-					posted += SDL_PrivateKeyboard(SDL_PRESSED, TranslateKey(371 /* SDLK_LCTRL */, &keysym));
-					posted += SDL_PrivateKeyboard(SDL_PRESSED, TranslateKey(key->value + 0x60, &keysym));
-					posted += SDL_PrivateKeyboard(SDL_RELEASED, TranslateKey(key->value + 0x60, &keysym));
-					posted += SDL_PrivateKeyboard(SDL_RELEASED, TranslateKey(371 /* SDLK_CTRL */, &keysym));
-                } else if ( key->value >= 'A' && key->value <= 'Z' ) {
+				if ( key->value >= 'A' && key->value <= 'Z' ) {
 					posted += SDL_PrivateKeyboard(SDL_PRESSED, TranslateKey(369 /* SDLK_LSHIFT */, &keysym));
 					posted += SDL_PrivateKeyboard(SDL_PRESSED, TranslateKey(key->value, &keysym));
 					posted += SDL_PrivateKeyboard(SDL_RELEASED, TranslateKey(key->value, &keysym));
@@ -422,12 +413,10 @@ void SIXEL_PumpEvents(_THIS)
 		prev_y = SIXEL_mouse_y;
 		SDL_Unlock_EventThread();
 	}
-    fflush(stdout);
 
 #if SIXEL_DEBUG
-	printf("\033[100;50Hevents: %5d key: [%3d] button: [%1d] cursor: (%3d, %3d)",
+	printf("\033[32;1Hevents: %5d button: [%1d] cursor: (%3d, %3d)\n",
 		events++,
-        keyval,
 		SIXEL_mouse_button,
 		SIXEL_mouse_x, SIXEL_mouse_y);
 #endif
@@ -508,7 +497,7 @@ void SIXEL_InitOSKeymap(_THIS)
 static int TranslateScancode(int code)
 {
 	static u_char tbl[] = {
-		-8, -7, -6, -5, 0, 0, 0, 0, 14, 15, 28, 0, 0, 28, 0, 0,	/* 0x0 - 0xf */
+		0, 0, 0, 0, 0, 0, 0, 0, 14, 15, 28, 0, 0, 28, 0, 0,	/* 0x0 - 0xf */
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,		/* 0x10 - 0x1f */
 		57, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 13, 51, 12, 52, 53, 	/* 0x20 - 0x2f */
 		11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 39, 39, 51, 13, 52, 53,	/* 0x30 - 0x3f */
@@ -518,9 +507,6 @@ static int TranslateScancode(int code)
 		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 26, 43, 27, 0, 0, /* 0x70 - 0x7f */
 	};
 
-	if (code == 370 /* SDLK_LCTRL */) {
-		return 45+8;
-	}
 	if (code == 369 /* SDLK_LSHIFT */) {
 		return 42+8;
 	}
