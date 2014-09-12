@@ -39,7 +39,7 @@
 #define SIXEL_DEBUG 1
 #endif
 
-#if 1
+#if 0
 #define US101_KBD
 #endif
 
@@ -255,22 +255,22 @@ void SIXEL_PumpEvents(_THIS)
 				SIXEL_mouse_x = (key->params[1] - 1) * (SIXEL_pixel_w / SIXEL_cell_w);
 				switch (key->params[0]) {
 				case 0:
-                    if (!(SIXEL_mouse_button & 1)) {
-					    posted += SDL_PrivateMouseButton(SDL_PRESSED, 1, 0, 0);
-					    SIXEL_mouse_button |= 1;
-                    }
+					if (!(SIXEL_mouse_button & 1)) {
+						posted += SDL_PrivateMouseButton(SDL_PRESSED, 1, 0, 0);
+						SIXEL_mouse_button |= 1;
+					}
 					break;
 				case 1:
-                    if (!(SIXEL_mouse_button & 2)) {
-					    posted += SDL_PrivateMouseButton(SDL_PRESSED, 2, 0, 0);
-					    SIXEL_mouse_button |= 2;
-                    }
+					if (!(SIXEL_mouse_button & 2)) {
+						posted += SDL_PrivateMouseButton(SDL_PRESSED, 2, 0, 0);
+						SIXEL_mouse_button |= 2;
+					}
 					break;
 				case 2:
-                    if (!(SIXEL_mouse_button & 4)) {
-					    posted += SDL_PrivateMouseButton(SDL_PRESSED, 3, 0, 0);
-					    SIXEL_mouse_button |= 4;
-                    }
+					if (!(SIXEL_mouse_button & 4)) {
+						posted += SDL_PrivateMouseButton(SDL_PRESSED, 3, 0, 0);
+						SIXEL_mouse_button |= 4;
+					}
 					break;
 				case 33: /* button1 dragging */
 				case 34: /* button2 dragging */
@@ -288,22 +288,22 @@ void SIXEL_PumpEvents(_THIS)
 				SIXEL_mouse_x = (key->params[1] - 1) * SIXEL_pixel_w / SIXEL_cell_w;
 				switch (key->params[0]) {
 				case 0:
-                    if (SIXEL_mouse_button & 1) {
-					    posted += SDL_PrivateMouseButton(SDL_RELEASED, 1, 0, 0);
-					    SIXEL_mouse_button ^= 1;
-                    }
+					if (SIXEL_mouse_button & 1) {
+						posted += SDL_PrivateMouseButton(SDL_RELEASED, 1, 0, 0);
+						SIXEL_mouse_button ^= 1;
+					}
 					break;
 				case 1:
-                    if (SIXEL_mouse_button & 2) {
-					    posted += SDL_PrivateMouseButton(SDL_RELEASED, 2, 0, 0);
-					    SIXEL_mouse_button ^= 2;
-                    }
+					if (SIXEL_mouse_button & 2) {
+						posted += SDL_PrivateMouseButton(SDL_RELEASED, 2, 0, 0);
+						SIXEL_mouse_button ^= 2;
+					}
 					break;
 				case 2:
-                    if (SIXEL_mouse_button & 4) {
-					    posted += SDL_PrivateMouseButton(SDL_RELEASED, 3, 0, 0);
-					    SIXEL_mouse_button ^= 4;
-                    }
+					if (SIXEL_mouse_button & 4) {
+						posted += SDL_PrivateMouseButton(SDL_RELEASED, 3, 0, 0);
+						SIXEL_mouse_button ^= 4;
+					}
 					break;
 				default:
 					break;
@@ -409,7 +409,7 @@ void SIXEL_PumpEvents(_THIS)
 				break;
 			default:
 				if ( (key->value >= SIXEL_UP && key->value <= SIXEL_LEFT) ||
-				     (key->value >= SIXEL_F1 && key->value <= SIXEL_F4) ) {
+					(key->value >= SIXEL_F1 && key->value <= SIXEL_F4) ) {
 					keysym.mod = KMOD_NONE;
 					keysym.unicode = 0;
 					switch(key->value) {
