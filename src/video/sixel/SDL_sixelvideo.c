@@ -77,6 +77,8 @@ static void tty_raw(void)
 	raw.c_iflag &= ~(/*BRKINT |*/ ICRNL /*| INPCK | ISTRIP | IXON*/);
 	raw.c_lflag &= ~(ECHO | ICANON /*| IEXTEN | ISIG*/);
 	raw.c_cc[VMIN] = 0; raw.c_cc[VTIME] = 0;
+	raw.c_cc[VINTR] = 0; raw.c_cc[VKILL] = 0; raw.c_cc[VQUIT] = 0;
+	raw.c_cc[VSTOP] = 0; raw.c_cc[VSUSP] = 0;
 	if ( tcsetattr(fileno(stdin), TCSAFLUSH, &raw) < 0 )
 		perror("can't set raw mode");
 }
@@ -240,7 +242,6 @@ SDL_Surface *SIXEL_SetVideoMode(_THIS, SDL_Surface *current,
 		free( SIXEL_buffer );
 		SIXEL_buffer = NULL;
 	}
-
 	SDL_PrivateAppActive(1, SDL_APPINPUTFOCUS | SDL_APPMOUSEFOCUS);
 
 	SIXEL_buffer = calloc(1, 3 * width * height);
@@ -312,6 +313,8 @@ static int SIXEL_SetCaption(_THIS, const char *title, const char *icon)
 {
 	printf("\033]1;%s\033\\", icon);
 	printf("\033]2;%s\033\\", title);
+
+	return 0;
 }
 
 static int SIXEL_FlipHWSurface(_THIS, SDL_Surface *surface)

@@ -39,6 +39,10 @@
 #define SIXEL_DEBUG 1
 #endif
 
+#if 1
+#define US101_KBD
+#endif
+
 #define SIXEL_UP		(1 << 12 | ('A' - '@'))
 #define SIXEL_DOWN		(1 << 12 | ('B' - '@'))
 #define SIXEL_RIGHT		(1 << 12 | ('C' - '@'))
@@ -71,6 +75,10 @@ enum _state {
 /* The translation tables from a console scancode to a SDL keysym */
 static SDLKey keymap[1 << 13];
 
+static int SendModifierKey(int state, Uint8 press_state);
+static int GetScancode(int code);
+static int GetKsymScancode(SDLKey sym);
+static int GetState(int code);
 static SDL_keysym *TranslateKey(int scancode, SDL_keysym *keysym);
 
 static int get_input(char *buf, int size) {
@@ -378,27 +386,58 @@ void SIXEL_PumpEvents(_THIS)
 				case 21:
 					keysym.sym = SDLK_F10;
 					break;
-				case 22:
+				case 23:
 					keysym.sym = SDLK_F11;
 					break;
-				case 23:
+				case 24:
 					keysym.sym = SDLK_F12;
 					break;
 				default:
 					keysym.sym = SDLK_UNKNOWN;
 					break;
 				}
+				keysym.scancode = GetKsymScancode(keysym.sym);
+				if (key->nparams == 2) {
+					key->params[1]--;
+					posted += SendModifierKey(key->params[1], SDL_PRESSED);
+				}
 				posted += SDL_PrivateKeyboard(SDL_PRESSED, &keysym);
+				if (key->nparams == 2) {
+					posted += SendModifierKey(key->params[1], SDL_RELEASED);
+				}
 				posted += SDL_PrivateKeyboard(SDL_RELEASED, &keysym);
 				break;
 			default:
-				if ( key->value >= 'A' && key->value <= 'Z' ) {
-					posted += SDL_PrivateKeyboard(SDL_PRESSED, TranslateKey(369 /* SDLK_LSHIFT */, &keysym));
+				if ( (key->value >= SIXEL_UP && key->value <= SIXEL_LEFT) ||
+				     (key->value >= SIXEL_F1 && key->value <= SIXEL_F4) ) {
+					keysym.mod = KMOD_NONE;
+					keysym.unicode = 0;
+					switch(key->value) {
+					case SIXEL_UP: keysym.sym = SDLK_UP; break;
+					case SIXEL_DOWN: keysym.sym = SDLK_DOWN; break;
+					case SIXEL_RIGHT: keysym.sym = SDLK_RIGHT; break;
+					case SIXEL_LEFT: keysym.sym = SDLK_LEFT; break;
+					case SIXEL_F1: keysym.sym = SDLK_F1; break;
+					case SIXEL_F2: keysym.sym = SDLK_F2; break;
+					case SIXEL_F3: keysym.sym = SDLK_F3; break;
+					default: keysym.sym = SDLK_F4; break;
+					}
+					keysym.scancode = GetKsymScancode(keysym.sym);
+					if (key->nparams == 1) {
+						key->params[0]--;
+						posted += SendModifierKey(key->params[0], SDL_PRESSED);
+					}
+					posted += SDL_PrivateKeyboard(SDL_PRESSED, &keysym);
+					if (key->nparams == 1) {
+						posted += SendModifierKey(key->params[0], SDL_RELEASED);
+					}
+					posted += SDL_PrivateKeyboard(SDL_RELEASED, &keysym);
+				}
+				else {
+					int state = GetState(key->value);
+					if (state) SendModifierKey(state, SDL_PRESSED);
 					posted += SDL_PrivateKeyboard(SDL_PRESSED, TranslateKey(key->value, &keysym));
-					posted += SDL_PrivateKeyboard(SDL_RELEASED, TranslateKey(key->value, &keysym));
-					posted += SDL_PrivateKeyboard(SDL_RELEASED, TranslateKey(369 /* SDLK_LSHIFT */, &keysym));
-				} else {
-					posted += SDL_PrivateKeyboard(SDL_PRESSED, TranslateKey(key->value, &keysym));
+					if (state) SendModifierKey(state, SDL_RELEASED);
 					posted += SDL_PrivateKeyboard(SDL_RELEASED, TranslateKey(key->value, &keysym));
 				}
 				break;
@@ -495,6 +534,122 @@ void SIXEL_InitOSKeymap(_THIS)
 
 }
 
+static int SendModifierKey(int state, Uint8 press_state)
+{
+	SDL_keysym  keysym;
+	int posted = 0;
+
+	if (state & 1) {
+		posted += SDL_PrivateKeyboard(press_state, TranslateKey(369 /* SDLK_LSHIFT */, &keysym));
+	}
+	if (state & 2) {
+		posted += SDL_PrivateKeyboard(press_state, TranslateKey(377 /* SDLK_LALT */, &keysym));
+	}
+	if (state & 4) {
+		posted += SDL_PrivateKeyboard(press_state, TranslateKey(371 /* SDLK_LCTRL */, &keysym));
+	}
+	return posted;
+}
+
+static int GetScancode(int code)
+{
+#ifdef US101_KBD
+	static u_char tbl[] = {
+		 0,  0,  0,  0,  0,  0,  0,  0, 14, 15, 28,  0,  0, 28,  0,  0,	/* 0x0 - 0xf */
+		 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,	/* 0x10 - 0x1f */
+		57,  2, 40,  4,  5,  6,  8, 40, 10, 11,  9, 13, 51, 12, 52, 53, /* 0x20 - 0x2f */
+		11,  2,  3,  4,  5,  6,  7,  8,  9, 10, 39, 39, 51, 13, 52, 53,	/* 0x30 - 0x3f */
+		 3, 30, 48, 46, 32, 18, 33, 34, 35, 23, 36, 37, 38, 50, 49, 24, /* 0x40 - 0x4f */
+		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 26, 43, 27,  7, 12, /* 0x50 - 0x5f */
+		41, 30, 48, 46, 32, 18, 33, 34, 35, 23, 36, 37, 38, 50, 49, 24, /* 0x60 - 0x6f */
+		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 26, 43, 27, 41, 0,	/* 0x70 - 0x7f */
+	};
+#else	/* JP106 */
+	static u_char tbl[] = {
+		 0,  0,  0,  0,  0,  0,  0,  0, 14, 15, 28,  0,  0, 28,  0,  0,	/* 0x0 - 0xf */
+		 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,	/* 0x10 - 0x1f */
+		57,  2,  3,  4,  5,  6,  7,  8,  9, 10, 40, 39, 51, 12, 52, 53, /* 0x20 - 0x2f */
+		11,  2,  3,  4,  5,  6,  7,  8,  9, 10, 40, 39, 51, 12, 52, 53,	/* 0x30 - 0x3f */
+		26, 30, 48, 46, 32, 18, 33, 34, 35, 23, 36, 37, 38, 50, 49, 24, /* 0x40 - 0x4f */
+		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 27, 43, 43, 13, 12, /* 0x50 - 0x5f */
+		26, 30, 48, 46, 32, 18, 33, 34, 35, 23, 36, 37, 38, 50, 49, 24, /* 0x60 - 0x6f */
+		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 27, 43, 43, 13, 0,	/* 0x70 - 0x7f */
+	};
+#endif
+
+	if (code == 369 /* SDLK_LSHIFT */) {
+		return 42+8;
+	}
+	else if(code == 377 /* SDLK_LALT */) {
+		return 56+8;
+	}
+	else if(code == 371 /* SDLK_LCTRL */) {
+		return 29+8;
+	}
+	else if(code <= 0x7f && tbl[code] > 0)
+	{
+		return tbl[code]+8;
+	}
+	else {
+		return 0;
+	}
+}
+
+static int GetKsymScancode(SDLKey sym)
+{
+	switch(sym) {
+	case SDLK_F1: return 59+8;
+	case SDLK_F2: return 60+8;
+	case SDLK_F3: return 61+8;
+	case SDLK_F4: return 62+8;
+	case SDLK_F5: return 63+8;
+	case SDLK_F6: return 64+8;
+	case SDLK_F7: return 65+8;
+	case SDLK_F8: return 66+8;
+	case SDLK_F9: return 67+8;
+	case SDLK_F10: return 68+8;
+	case SDLK_F11: return 87+8;
+	case SDLK_F12: return 88+8;
+	case SDLK_RIGHT: return 106+8;
+	case SDLK_LEFT: return 105+8;
+	case SDLK_UP: return 103+8;
+	case SDLK_DOWN: return 108+8;
+	default: return 0;
+	}
+}
+
+static int GetState(int code)
+{
+	if (code < 0x20) {
+		if (GetScancode(code) == 0) {
+			return 4;	/* Control */
+		}
+	}
+	else if (code <= 0x7f) {
+#ifdef US101_KBD
+		static u_char tbl[] = {
+			0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, /* 0x20 - 0x2f */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1,	/* 0x30 - 0x3f */
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 0x40 - 0x4f */
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, /* 0x50 - 0x5f */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x60 - 0x6f */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, /* 0x70 - 0x7f */
+		};
+#else	/* JP106 */
+		static u_char tbl[] = {
+			0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, /* 0x20 - 0x2f */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,	/* 0x30 - 0x3f */
+			0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 0x40 - 0x4f */
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, /* 0x50 - 0x5f */
+			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x60 - 0x6f */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, /* 0x70 - 0x7f */
+		};
+#endif
+		return tbl[code - 0x20];
+	}
+	return 0;
+}
+
 static SDL_keysym *TranslateKey(int scancode, SDL_keysym *keysym)
 {
 	/* Sanity check */
@@ -502,15 +657,24 @@ static SDL_keysym *TranslateKey(int scancode, SDL_keysym *keysym)
 		scancode = SIXEL_UNKNOWN;
 
 	/* Set the keysym information */
-	keysym->scancode = scancode;
-	keysym->sym = keymap[scancode];
+	keysym->scancode = GetScancode(scancode);
+	if (keysym->scancode == 0 && scancode < 0x20) {
+		/* It seems Ctrl+N key */
+		keysym->scancode = GetScancode(scancode+0x60);
+		keysym->sym = keymap[scancode+0x60];
+	}
+	else {
+		keysym->sym = keymap[scancode];
+	}
 	keysym->mod = KMOD_NONE;
 
 	/* If UNICODE is on, get the UNICODE value for the key */
 	keysym->unicode = 0;
 	if ( SDL_TranslateUNICODE ) {
 		/* Populate the unicode field with the ASCII value */
-		keysym->unicode = scancode;
+		if (scancode <= 0x7f) {
+			keysym->unicode = scancode;
+		}
 	}
 	return(keysym);
 }
