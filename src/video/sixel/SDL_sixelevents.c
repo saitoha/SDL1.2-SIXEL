@@ -39,22 +39,22 @@
 #define SIXEL_DEBUG 1
 #endif
 
-#define SIXEL_UP		(1 << 12 | ('A' - '@'))
-#define SIXEL_DOWN		(1 << 12 | ('B' - '@'))
-#define SIXEL_RIGHT		(1 << 12 | ('C' - '@'))
-#define SIXEL_LEFT		(1 << 12 | ('D' - '@'))
-#define SIXEL_END		(1 << 12 | ('F' - '@'))
-#define SIXEL_HOME		(1 << 12 | ('H' - '@'))
-#define SIXEL_F1		(1 << 12 | ('P' - '@'))
-#define SIXEL_F2		(1 << 12 | ('Q' - '@'))
-#define SIXEL_F3		(1 << 12 | ('R' - '@'))
-#define SIXEL_F4		(1 << 12 | ('S' - '@'))
-#define SIXEL_FKEYS		(1 << 12 | ('~' - '@'))
-#define SIXEL_MOUSE_SGR		(1 << 12 | ('<' - ';') << 4 << 6 | ('M' - '@'))
-#define SIXEL_MOUSE_SGR_RELEASE	(1 << 12 | ('<' - ';') << 4 << 6 | ('m' - '@'))
-#define SIXEL_MOUSE_DEC		(1 << 12 | ('&' - 0x1f) << 6 | ('w' - '@'))
-#define SIXEL_DTTERM_SEQS	(1 << 12 | ('t' - '@'))
-#define SIXEL_UNKNOWN		(513)
+#define SIXEL_UP                (1 << 12 | ('A' - '@'))
+#define SIXEL_DOWN              (1 << 12 | ('B' - '@'))
+#define SIXEL_RIGHT             (1 << 12 | ('C' - '@'))
+#define SIXEL_LEFT              (1 << 12 | ('D' - '@'))
+#define SIXEL_END               (1 << 12 | ('F' - '@'))
+#define SIXEL_HOME              (1 << 12 | ('H' - '@'))
+#define SIXEL_F1                (1 << 12 | ('P' - '@'))
+#define SIXEL_F2                (1 << 12 | ('Q' - '@'))
+#define SIXEL_F3                (1 << 12 | ('R' - '@'))
+#define SIXEL_F4                (1 << 12 | ('S' - '@'))
+#define SIXEL_FKEYS             (1 << 12 | ('~' - '@'))
+#define SIXEL_MOUSE_SGR         (1 << 12 | ('<' - ';') << 4 << 6 | ('M' - '@'))
+#define SIXEL_MOUSE_SGR_RELEASE (1 << 12 | ('<' - ';') << 4 << 6 | ('m' - '@'))
+#define SIXEL_MOUSE_DEC         (1 << 12 | ('&' - 0x1f) << 6 | ('w' - '@'))
+#define SIXEL_DTTERM_SEQS       (1 << 12 | ('t' - '@'))
+#define SIXEL_UNKNOWN           (513)
 
 typedef struct _key {
 	int params[256];
@@ -379,22 +379,22 @@ void SIXEL_PumpEvents(_THIS)
 					keysym.sym = SDLK_PAGEDOWN;
 					break;
 				case 7:
-					keysym.sym = SDLK_HOME;	/* RXVT */
+					keysym.sym = SDLK_HOME;  /* RXVT */
 					break;
 				case 8:
-					keysym.sym = SDLK_END;	/* RXVT */
+					keysym.sym = SDLK_END;  /* RXVT */
 					break;
 				case 11:
-					keysym.sym = SDLK_F1;	/* RXVT */
+					keysym.sym = SDLK_F1;  /* RXVT */
 					break;
 				case 12:
-					keysym.sym = SDLK_F2;	/* RXVT */
+					keysym.sym = SDLK_F2;  /* RXVT */
 					break;
 				case 13:
-					keysym.sym = SDLK_F3;	/* RXVT */
+					keysym.sym = SDLK_F3;  /* RXVT */
 					break;
 				case 14:
-					keysym.sym = SDLK_F4;	/* RXVT */
+					keysym.sym = SDLK_F4;  /* RXVT */
 					break;
 				case 15:
 					keysym.sym = SDLK_F5;
@@ -597,24 +597,24 @@ static char* GetKbdType(void)
 static int GetScancode(int code)
 {
 	static u_char us101_kbd_tbl[] = {
-		 0,  0,  0,  0,  0,  0,  0,  0, 14, 15, 28,  0,  0, 28,  0,  0,	/* 0x0 - 0xf */
-		 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,	/* 0x10 - 0x1f */
+		 0,  0,  0,  0,  0,  0,  0,  0, 14, 15, 28,  0,  0, 28,  0,  0, /* 0x0 - 0xf */
+		 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0, /* 0x10 - 0x1f */
 		57,  2, 40,  4,  5,  6,  8, 40, 10, 11,  9, 13, 51, 12, 52, 53, /* 0x20 - 0x2f */
-		11,  2,  3,  4,  5,  6,  7,  8,  9, 10, 39, 39, 51, 13, 52, 53,	/* 0x30 - 0x3f */
+		11,  2,  3,  4,  5,  6,  7,  8,  9, 10, 39, 39, 51, 13, 52, 53, /* 0x30 - 0x3f */
 		 3, 30, 48, 46, 32, 18, 33, 34, 35, 23, 36, 37, 38, 50, 49, 24, /* 0x40 - 0x4f */
 		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 26, 43, 27,  7, 12, /* 0x50 - 0x5f */
 		41, 30, 48, 46, 32, 18, 33, 34, 35, 23, 36, 37, 38, 50, 49, 24, /* 0x60 - 0x6f */
-		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 26, 43, 27, 41, 0,	/* 0x70 - 0x7f */
+		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 26, 43, 27, 41,  0, /* 0x70 - 0x7f */
 	};
 	static u_char jp106_kbd_tbl[] = {
-		 0,  0,  0,  0,  0,  0,  0,  0, 14, 15, 28,  0,  0, 28,  0,  0,	/* 0x0 - 0xf */
-		 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,	/* 0x10 - 0x1f */
+		 0,  0,  0,  0,  0,  0,  0,  0, 14, 15, 28,  0,  0, 28,  0,  0, /* 0x0 - 0xf */
+		 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0, /* 0x10 - 0x1f */
 		57,  2,  3,  4,  5,  6,  7,  8,  9, 10, 40, 39, 51, 12, 52, 53, /* 0x20 - 0x2f */
-		11,  2,  3,  4,  5,  6,  7,  8,  9, 10, 40, 39, 51, 12, 52, 53,	/* 0x30 - 0x3f */
+		11,  2,  3,  4,  5,  6,  7,  8,  9, 10, 40, 39, 51, 12, 52, 53, /* 0x30 - 0x3f */
 		26, 30, 48, 46, 32, 18, 33, 34, 35, 23, 36, 37, 38, 50, 49, 24, /* 0x40 - 0x4f */
 		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 27, 43, 43, 13, 12, /* 0x50 - 0x5f */
 		26, 30, 48, 46, 32, 18, 33, 34, 35, 23, 36, 37, 38, 50, 49, 24, /* 0x60 - 0x6f */
-		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 27, 43, 43, 13, 0,	/* 0x70 - 0x7f */
+		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 27, 43, 43, 13,  0, /* 0x70 - 0x7f */
 	};
 	static u_char* tbl;
 
@@ -684,7 +684,7 @@ static int GetState(int code)
 	else if (code <= 0x7f) {
 		static u_char us101_kbd_tbl[] = {
 			0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, /* 0x20 - 0x2f */
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1,	/* 0x30 - 0x3f */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, /* 0x30 - 0x3f */
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 0x40 - 0x4f */
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, /* 0x50 - 0x5f */
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x60 - 0x6f */
@@ -692,7 +692,7 @@ static int GetState(int code)
 		};
 		static u_char jp106_kbd_tbl[] = {
 			0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, /* 0x20 - 0x2f */
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,	/* 0x30 - 0x3f */
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, /* 0x30 - 0x3f */
 			0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 0x40 - 0x4f */
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, /* 0x50 - 0x5f */
 			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x60 - 0x6f */
