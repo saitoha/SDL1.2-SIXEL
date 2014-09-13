@@ -39,14 +39,12 @@
 #define SIXEL_DEBUG 1
 #endif
 
-#if 0
-#define US101_KBD
-#endif
-
 #define SIXEL_UP		(1 << 12 | ('A' - '@'))
 #define SIXEL_DOWN		(1 << 12 | ('B' - '@'))
 #define SIXEL_RIGHT		(1 << 12 | ('C' - '@'))
 #define SIXEL_LEFT		(1 << 12 | ('D' - '@'))
+#define SIXEL_END		(1 << 12 | ('F' - '@'))
+#define SIXEL_HOME		(1 << 12 | ('H' - '@'))
 #define SIXEL_F1		(1 << 12 | ('P' - '@'))
 #define SIXEL_F2		(1 << 12 | ('Q' - '@'))
 #define SIXEL_F3		(1 << 12 | ('R' - '@'))
@@ -368,6 +366,36 @@ void SIXEL_PumpEvents(_THIS)
 				keysym.mod = KMOD_NONE;
 				keysym.unicode = 0;
 				switch ( key->params[0] ) {
+				case 2:
+					keysym.sym = SDLK_INSERT;
+					break;
+				case 3:
+					keysym.sym = SDLK_DELETE;
+					break;
+				case 5:
+					keysym.sym = SDLK_PAGEUP;
+					break;
+				case 6:
+					keysym.sym = SDLK_PAGEDOWN;
+					break;
+				case 7:
+					keysym.sym = SDLK_HOME;	/* RXVT */
+					break;
+				case 8:
+					keysym.sym = SDLK_END;	/* RXVT */
+					break;
+				case 11:
+					keysym.sym = SDLK_F1;	/* RXVT */
+					break;
+				case 12:
+					keysym.sym = SDLK_F2;	/* RXVT */
+					break;
+				case 13:
+					keysym.sym = SDLK_F3;	/* RXVT */
+					break;
+				case 14:
+					keysym.sym = SDLK_F4;	/* RXVT */
+					break;
 				case 15:
 					keysym.sym = SDLK_F5;
 					break;
@@ -409,6 +437,7 @@ void SIXEL_PumpEvents(_THIS)
 				break;
 			default:
 				if ( (key->value >= SIXEL_UP && key->value <= SIXEL_LEFT) ||
+					(key->value >= SIXEL_END && key->value <= SIXEL_HOME) ||
 					(key->value >= SIXEL_F1 && key->value <= SIXEL_F4) ) {
 					keysym.mod = KMOD_NONE;
 					keysym.unicode = 0;
@@ -417,19 +446,21 @@ void SIXEL_PumpEvents(_THIS)
 					case SIXEL_DOWN: keysym.sym = SDLK_DOWN; break;
 					case SIXEL_RIGHT: keysym.sym = SDLK_RIGHT; break;
 					case SIXEL_LEFT: keysym.sym = SDLK_LEFT; break;
+					case SIXEL_HOME: keysym.sym = SDLK_HOME; break;
+					case SIXEL_END: keysym.sym = SDLK_END; break;
 					case SIXEL_F1: keysym.sym = SDLK_F1; break;
 					case SIXEL_F2: keysym.sym = SDLK_F2; break;
 					case SIXEL_F3: keysym.sym = SDLK_F3; break;
 					default: keysym.sym = SDLK_F4; break;
 					}
 					keysym.scancode = GetKsymScancode(keysym.sym);
-					if (key->nparams == 1) {
-						key->params[0]--;
-						posted += SendModifierKey(key->params[0], SDL_PRESSED);
+					if (key->nparams >= 1) {
+						key->params[key->nparams-1]--;
+						posted += SendModifierKey(key->params[key->nparams-1], SDL_PRESSED);
 					}
 					posted += SDL_PrivateKeyboard(SDL_PRESSED, &keysym);
-					if (key->nparams == 1) {
-						posted += SendModifierKey(key->params[0], SDL_RELEASED);
+					if (key->nparams >= 1) {
+						posted += SendModifierKey(key->params[key->nparams-1], SDL_RELEASED);
 					}
 					posted += SDL_PrivateKeyboard(SDL_RELEASED, &keysym);
 				}
@@ -551,10 +582,21 @@ static int SendModifierKey(int state, Uint8 press_state)
 	return posted;
 }
 
+static char* GetKbdType(void)
+{
+	char* env;
+	env = getenv("SDL_SIXEL_KBD");
+	if (env) {
+		return env;
+	}
+	else {
+		return "";
+	}
+}
+
 static int GetScancode(int code)
 {
-#ifdef US101_KBD
-	static u_char tbl[] = {
+	static u_char us101_kbd_tbl[] = {
 		 0,  0,  0,  0,  0,  0,  0,  0, 14, 15, 28,  0,  0, 28,  0,  0,	/* 0x0 - 0xf */
 		 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,	/* 0x10 - 0x1f */
 		57,  2, 40,  4,  5,  6,  8, 40, 10, 11,  9, 13, 51, 12, 52, 53, /* 0x20 - 0x2f */
@@ -564,8 +606,7 @@ static int GetScancode(int code)
 		41, 30, 48, 46, 32, 18, 33, 34, 35, 23, 36, 37, 38, 50, 49, 24, /* 0x60 - 0x6f */
 		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 26, 43, 27, 41, 0,	/* 0x70 - 0x7f */
 	};
-#else	/* JP106 */
-	static u_char tbl[] = {
+	static u_char jp106_kbd_tbl[] = {
 		 0,  0,  0,  0,  0,  0,  0,  0, 14, 15, 28,  0,  0, 28,  0,  0,	/* 0x0 - 0xf */
 		 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,	/* 0x10 - 0x1f */
 		57,  2,  3,  4,  5,  6,  7,  8,  9, 10, 40, 39, 51, 12, 52, 53, /* 0x20 - 0x2f */
@@ -575,7 +616,16 @@ static int GetScancode(int code)
 		26, 30, 48, 46, 32, 18, 33, 34, 35, 23, 36, 37, 38, 50, 49, 24, /* 0x60 - 0x6f */
 		25, 16, 19, 31, 20, 22, 47, 17, 45, 21, 44, 27, 43, 43, 13, 0,	/* 0x70 - 0x7f */
 	};
-#endif
+	static u_char* tbl;
+
+	if (!tbl) {
+		if (strcmp(GetKbdType(),"jp106") == 0) {
+			tbl = jp106_kbd_tbl;
+		}
+		else {
+			tbl = us101_kbd_tbl;
+		}
+	}
 
 	if (code == 369 /* SDLK_LSHIFT */) {
 		return 42+8;
@@ -598,6 +648,10 @@ static int GetScancode(int code)
 static int GetKsymScancode(SDLKey sym)
 {
 	switch(sym) {
+	case SDLK_INSERT: return 110+8;
+	case SDLK_DELETE: return 111+8;
+	case SDLK_PAGEUP: return 104+8;
+	case SDLK_PAGEDOWN: return 109+8;
 	case SDLK_F1: return 59+8;
 	case SDLK_F2: return 60+8;
 	case SDLK_F3: return 61+8;
@@ -614,6 +668,8 @@ static int GetKsymScancode(SDLKey sym)
 	case SDLK_LEFT: return 105+8;
 	case SDLK_UP: return 103+8;
 	case SDLK_DOWN: return 108+8;
+	case SDLK_HOME: return 102+8;
+	case SDLK_END: return 107+8;
 	default: return 0;
 	}
 }
@@ -626,8 +682,7 @@ static int GetState(int code)
 		}
 	}
 	else if (code <= 0x7f) {
-#ifdef US101_KBD
-		static u_char tbl[] = {
+		static u_char us101_kbd_tbl[] = {
 			0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, /* 0x20 - 0x2f */
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1,	/* 0x30 - 0x3f */
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 0x40 - 0x4f */
@@ -635,8 +690,7 @@ static int GetState(int code)
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x60 - 0x6f */
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, /* 0x70 - 0x7f */
 		};
-#else	/* JP106 */
-		static u_char tbl[] = {
+		static u_char jp106_kbd_tbl[] = {
 			0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, /* 0x20 - 0x2f */
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,	/* 0x30 - 0x3f */
 			0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, /* 0x40 - 0x4f */
@@ -644,7 +698,18 @@ static int GetState(int code)
 			1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x60 - 0x6f */
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, /* 0x70 - 0x7f */
 		};
-#endif
+		static u_char* tbl;
+
+		if (!tbl) {
+			if (strcmp(GetKbdType(),"jp106") == 0) {
+				tbl = jp106_kbd_tbl;
+			}
+			else {
+				tbl = us101_kbd_tbl;
+			}
+		}
+
+		/* Shift */
 		return tbl[code - 0x20];
 	}
 	return 0;
