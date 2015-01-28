@@ -1548,6 +1548,7 @@ AC_HELP_STRING([--enable-video-sixel], [use libsixel video driver [[default=no]]
                 SIXEL_CFLAGS=`$PKG_CONFIG --cflags libsixel`
                 SIXEL_LIBS=`$PKG_CONFIG --libs libsixel`
                 save_CFLAGS="$CFLAGS"
+                CFLAGS="$CFLAGS $SIXEL_CFLAGS"
                 AC_TRY_COMPILE([
                  #include <sixel.h>
                 ],[

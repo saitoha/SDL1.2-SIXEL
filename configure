@@ -19942,6 +19942,7 @@ $as_echo_n "checking for libsixel support... " >&6; }
                 SIXEL_CFLAGS=`$PKG_CONFIG --cflags libsixel`
                 SIXEL_LIBS=`$PKG_CONFIG --libs libsixel`
                 save_CFLAGS="$CFLAGS"
+                CFLAGS="$CFLAGS $SIXEL_CFLAGS"
                 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
