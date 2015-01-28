@@ -316,40 +316,28 @@ void SIXEL_PumpEvents(_THIS)
 					case 1:
 						break;
 					case 2:
-						if (!(SIXEL_mouse_button & 1)) {
-							posted += SDL_PrivateMouseButton(SDL_PRESSED, 1, 0, 0);
-							SIXEL_mouse_button |= 1;
-						}
+						posted += SDL_PrivateMouseButton(SDL_PRESSED, 1, 0, 0);
+						SIXEL_mouse_button |= 1;
 						break;
 					case 3:
-						if (SIXEL_mouse_button & 1) {
-							posted += SDL_PrivateMouseButton(SDL_RELEASED, 1, 0, 0);
-							SIXEL_mouse_button = 0;
-						}
+						posted += SDL_PrivateMouseButton(SDL_RELEASED, 1, 0, 0);
+						SIXEL_mouse_button &= ~1;
 						break;
 					case 4:
-						if (!(SIXEL_mouse_button & 2)) {
-							posted += SDL_PrivateMouseButton(SDL_PRESSED, 2, 0, 0);
-							SIXEL_mouse_button |= 2;
-						}
+						posted += SDL_PrivateMouseButton(SDL_PRESSED, 2, 0, 0);
+						SIXEL_mouse_button |= 2;
 						break;
 					case 5:
-						if (SIXEL_mouse_button & 2) {
-							posted += SDL_PrivateMouseButton(SDL_RELEASED, 2, 0, 0);
-							SIXEL_mouse_button = 0;
-						}
+						posted += SDL_PrivateMouseButton(SDL_RELEASED, 2, 0, 0);
+						SIXEL_mouse_button &= ~2;
 						break;
 					case 6:
-						if (!(SIXEL_mouse_button & 4)) {
-							posted += SDL_PrivateMouseButton(SDL_PRESSED, 3, 0, 0);
-							SIXEL_mouse_button |= 4;
-						}
+						posted += SDL_PrivateMouseButton(SDL_PRESSED, 3, 0, 0);
+						SIXEL_mouse_button |= 4;
 						break;
 					case 7:
-						if (SIXEL_mouse_button & 4) {
-							posted += SDL_PrivateMouseButton(SDL_RELEASED, 3, 0, 0);
-							SIXEL_mouse_button = 0;
-						}
+						posted += SDL_PrivateMouseButton(SDL_RELEASED, 3, 0, 0);
+						SIXEL_mouse_button &= ~4;
 						break;
 					case 32:
 					case 64:
