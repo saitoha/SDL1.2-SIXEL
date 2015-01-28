@@ -106,7 +106,7 @@ static void SIXEL_DeleteDevice(SDL_VideoDevice *device)
 
 void SIXEL_UpdateMouse(_THIS)
 {
-    SDL_PrivateMouseMotion (0, 0, SIXEL_mouse_x, SIXEL_mouse_y);
+	SDL_PrivateMouseMotion (0, 0, SIXEL_mouse_x, SIXEL_mouse_y);
 }
 
 static SDL_VideoDevice *SIXEL_CreateDevice(int devindex)
