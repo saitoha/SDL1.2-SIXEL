@@ -1543,7 +1543,8 @@ AC_HELP_STRING([--enable-video-sixel], [use libsixel video driver [[default=no]]
 
         AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
         if test x$PKG_CONFIG != xno; then
-            if $PKG_CONFIG --atleast-pkgconfig-version 0.7 && $PKG_CONFIG --atleast-version $LIBSIXEL_REQUIRED_VERSION libsixel; then
+            if $PKG_CONFIG --atleast-pkgconfig-version 0.7 && \
+               $PKG_CONFIG --atleast-version $LIBSIXEL_REQUIRED_VERSION libsixel; then
                 AC_MSG_CHECKING(for libsixel support)
                 SIXEL_CFLAGS=`$PKG_CONFIG --cflags libsixel`
                 SIXEL_LIBS=`$PKG_CONFIG --libs libsixel`
@@ -1564,6 +1565,44 @@ AC_HELP_STRING([--enable-video-sixel], [use libsixel video driver [[default=no]]
                     SOURCES="$SOURCES $srcdir/src/video/sixel/*.c"
                 fi
             fi
+        fi
+        if test "x$enable_video" = "xyes" -a "x$enable_video_opengl" = "xyes"; then
+            if test x$PKG_CONFIG != xno && \
+                    $PKG_CONFIG --atleast-pkgconfig-version 0.7 && \
+                    $PKG_CONFIG --atleast-version 8 osmesa; then
+                have_osmesa=yes
+                OSMESA_CFLAGS=`$PKG_CONFIG --cflags osmesa`
+                OSMESA_LIBS=`$PKG_CONFIG --libs osmesa`
+                AC_DEFINE(SDL_VIDEO_OPENGL)
+                AC_DEFINE(SDL_VIDEO_OPENGL_OSMESA)
+                EXTRA_CFLAGS="$EXTRA_CFLAGS $OSMESA_CFLAGS"
+                EXTRA_LDFLAGS="$EXTRA_LDFLAGS $OSMESA_LIBS"
+            else
+                AC_PATH_PROG(OSMESA_CONFIG, osmesa-config, no)
+                if test "x$OSMESA_CONFIG" != "xno"; then
+                    have_osmesa=yes
+                    OSMESA_CFLAGS=`$OSMESA_CONFIG --cflags`
+                    OSMESA_LIBS=`$OSMESA_CONFIG --libs`
+                    AC_DEFINE(SDL_VIDEO_OPENGL)
+                    AC_DEFINE(SDL_VIDEO_OPENGL_OSMESA)
+                    EXTRA_CFLAGS="$EXTRA_CFLAGS $OSMESA_CFLAGS"
+                    EXTRA_LDFLAGS="$EXTRA_LDFLAGS $OSMESA_LIBS"
+                else
+                    AC_CHECK_HEADER(GL/osmesa.h, have_osmesa_hdr=yes)
+                    AC_CHECK_LIB(OSMesa, OSMesaCreateContext, have_osmesa_lib=yes, have_osmesa_lib=no, -lm)
+                    if test "x$have_osmesa_hdr" = "xyes" -a "x$have_osmesa_lib" = "xyes"; then
+                        have_osmesa=yes
+                        AC_DEFINE(SDL_VIDEO_OPENGL)
+                        AC_DEFINE(SDL_VIDEO_OPENGL_OSMESA)
+                        OSMESA_LIBS="-lOSMesa"
+                        EXTRA_LDFLAGS="$EXTRA_LDFLAGS $OSMESA_LIBS"
+                    else
+                        have_osmesa=no
+                    fi
+                fi
+            fi
+            AC_MSG_CHECKING(for osmesa support)
+            AC_MSG_RESULT($have_osmesa)
         fi
     fi
 }

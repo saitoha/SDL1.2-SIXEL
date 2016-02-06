@@ -19936,7 +19936,8 @@ fi
 
 
         if test x$PKG_CONFIG != xno; then
-            if $PKG_CONFIG --atleast-pkgconfig-version 0.7 && $PKG_CONFIG --atleast-version $LIBSIXEL_REQUIRED_VERSION libsixel; then
+            if $PKG_CONFIG --atleast-pkgconfig-version 0.7 && \
+               $PKG_CONFIG --atleast-version $LIBSIXEL_REQUIRED_VERSION libsixel; then
                 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libsixel support" >&5
 $as_echo_n "checking for libsixel support... " >&6; }
                 SIXEL_CFLAGS=`$PKG_CONFIG --cflags libsixel`
@@ -19974,6 +19975,138 @@ $as_echo "$video_sixel" >&6; }
                     SOURCES="$SOURCES $srcdir/src/video/sixel/*.c"
                 fi
             fi
+        fi
+        if test "x$enable_video" = "xyes" -a "x$enable_video_opengl" = "xyes"; then
+            if test x$PKG_CONFIG != xno && \
+                    $PKG_CONFIG --atleast-pkgconfig-version 0.7 && \
+                    $PKG_CONFIG --atleast-version 8 osmesa; then
+                have_osmesa=yes
+                OSMESA_CFLAGS=`$PKG_CONFIG --cflags osmesa`
+                OSMESA_LIBS=`$PKG_CONFIG --libs osmesa`
+                $as_echo "#define SDL_VIDEO_OPENGL 1" >>confdefs.h
+
+                $as_echo "#define SDL_VIDEO_OPENGL_OSMESA 1" >>confdefs.h
+
+                EXTRA_CFLAGS="$EXTRA_CFLAGS $OSMESA_CFLAGS"
+                EXTRA_LDFLAGS="$EXTRA_LDFLAGS $OSMESA_LIBS"
+            else
+                # Extract the first word of "osmesa-config", so it can be a program name with args.
+set dummy osmesa-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_OSMESA_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $OSMESA_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_OSMESA_CONFIG="$OSMESA_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_OSMESA_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_OSMESA_CONFIG" && ac_cv_path_OSMESA_CONFIG="no"
+  ;;
+esac
+fi
+OSMESA_CONFIG=$ac_cv_path_OSMESA_CONFIG
+if test -n "$OSMESA_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OSMESA_CONFIG" >&5
+$as_echo "$OSMESA_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+                if test "x$OSMESA_CONFIG" != "xno"; then
+                    have_osmesa=yes
+                    OSMESA_CFLAGS=`$OSMESA_CONFIG --cflags`
+                    OSMESA_LIBS=`$OSMESA_CONFIG --libs`
+                    $as_echo "#define SDL_VIDEO_OPENGL 1" >>confdefs.h
+
+                    $as_echo "#define SDL_VIDEO_OPENGL_OSMESA 1" >>confdefs.h
+
+                    EXTRA_CFLAGS="$EXTRA_CFLAGS $OSMESA_CFLAGS"
+                    EXTRA_LDFLAGS="$EXTRA_LDFLAGS $OSMESA_LIBS"
+                else
+                    ac_fn_c_check_header_mongrel "$LINENO" "GL/osmesa.h" "ac_cv_header_GL_osmesa_h" "$ac_includes_default"
+if test "x$ac_cv_header_GL_osmesa_h" = xyes; then :
+  have_osmesa_hdr=yes
+fi
+
+
+                    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OSMesaCreateContext in -lOSMesa" >&5
+$as_echo_n "checking for OSMesaCreateContext in -lOSMesa... " >&6; }
+if ${ac_cv_lib_OSMesa_OSMesaCreateContext+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lOSMesa -lm $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char OSMesaCreateContext ();
+int
+main ()
+{
+return OSMesaCreateContext ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_OSMesa_OSMesaCreateContext=yes
+else
+  ac_cv_lib_OSMesa_OSMesaCreateContext=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_OSMesa_OSMesaCreateContext" >&5
+$as_echo "$ac_cv_lib_OSMesa_OSMesaCreateContext" >&6; }
+if test "x$ac_cv_lib_OSMesa_OSMesaCreateContext" = xyes; then :
+  have_osmesa_lib=yes
+else
+  have_osmesa_lib=no
+fi
+
+                    if test "x$have_osmesa_hdr" = "xyes" -a "x$have_osmesa_lib" = "xyes"; then
+                        have_osmesa=yes
+                        $as_echo "#define SDL_VIDEO_OPENGL 1" >>confdefs.h
+
+                        $as_echo "#define SDL_VIDEO_OPENGL_OSMESA 1" >>confdefs.h
+
+                        OSMESA_LIBS="-lOSMesa"
+                        EXTRA_LDFLAGS="$EXTRA_LDFLAGS $OSMESA_LIBS"
+                    else
+                        have_osmesa=no
+                    fi
+                fi
+            fi
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for osmesa support" >&5
+$as_echo_n "checking for osmesa support... " >&6; }
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_osmesa" >&5
+$as_echo "$have_osmesa" >&6; }
         fi
     fi
 }

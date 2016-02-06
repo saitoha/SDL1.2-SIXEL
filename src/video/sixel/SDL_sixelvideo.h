@@ -53,6 +53,9 @@ struct SDL_PrivateVideoData {
 	int mouse_x, mouse_y;
 	int mouse_button;
 	SDL_Rect update_rect;
+#if SDL_VIDEO_OPENGL_OSMESA
+	void *glcontext;
+#endif
 };
 
 /* Old variable names */
@@ -76,6 +79,8 @@ struct SDL_PrivateVideoData {
 
 #define SIXEL_mutex		(this->hidden->mutex)
 #define SIXEL_update_rect	(this->hidden->update_rect)
+#if SDL_VIDEO_OPENGL_OSMESA
+# define SIXEL_glcontext		(this->hidden->glcontext)
+#endif
 
-#endif /* _SDL_cacavideo_h */
-
+#endif /* _SDL_sixelvideo_h */
